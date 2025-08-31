@@ -38,6 +38,7 @@ export default function Dashboard(props: DashboardProps) {
     const [currentServing, setCurrentServing] = useState<Queue | null>(props.currentServing);
     const [nextQueues, setNextQueues] = useState<Queue[]>(props.nextQueues);
     const [statistics, setStatistics] = useState(props.statistics);
+    const [disableCallNext, setDisableCallNext] = useState(false);
 
     usePusher('queue-updates', {
         'queue-created': (data) => {
@@ -47,7 +48,11 @@ export default function Dashboard(props: DashboardProps) {
                 waiting: prev.waiting + 1,
             }));
         },
-        'queue-called': (data) => {},
+        'queue-called': (data) => {
+            setTimeout(() => {
+                setDisableCallNext(false);
+            }, 5000);
+        },
     });
 
     const formatTime = (dateString: string) => {
@@ -79,6 +84,8 @@ export default function Dashboard(props: DashboardProps) {
                 waiting: prev.waiting - 1,
                 serving: 1,
             }));
+            //disable button callNext
+            setDisableCallNext(true);
         } catch (error) {
             console.error('Error calling next queue:', error);
             alert('Failed to call next queue');
@@ -135,7 +142,12 @@ export default function Dashboard(props: DashboardProps) {
                                     <AlertCircle className="h-5 w-5 text-orange-500" />
                                     Currently Serving
                                 </div>
-                                <Button onClick={handleCallNext} disabled={nextQueues.length === 0} size="sm" className="flex items-center gap-2">
+                                <Button
+                                    onClick={handleCallNext}
+                                    disabled={nextQueues.length === 0 || disableCallNext}
+                                    size="sm"
+                                    className="flex items-center gap-2"
+                                >
                                     <Phone className="h-4 w-4" />
                                     Call Next
                                 </Button>
